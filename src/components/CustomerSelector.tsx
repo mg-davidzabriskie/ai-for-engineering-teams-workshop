@@ -80,7 +80,11 @@ export const CustomerSelector = ({
   return (
     <div className={`space-y-6 ${className}`.trim()}>
       {/* Search Input Section */}
-      <div className="space-y-2">
+      <div className="space-y-2" role="search" aria-labelledby="search-heading">
+        <div className="sr-only" id="search-heading">Customer Search</div>
+        <div className="sr-only" id="search-instructions">
+          Type to search customers by name or company. Use arrow keys to navigate results.
+        </div>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg
@@ -111,16 +115,18 @@ export const CustomerSelector = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search customers"
+            aria-describedby="search-instructions search-status"
           />
           {/* Loading Spinner or Clear Button */}
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
             {isSearching ? (
               <svg
-                className="animate-spin h-5 w-5 text-gray-400"
+                className="motion-safe:animate-spin h-5 w-5 text-gray-400"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
-                aria-hidden="true"
+                aria-label="Searching"
+                role="status"
               >
                 <circle
                   className="opacity-25"
@@ -163,7 +169,7 @@ export const CustomerSelector = ({
 
         {/* Search Status */}
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>
+          <span id="search-status" aria-live="polite" aria-atomic="true">
             {isSearching ? (
               'Searching...'
             ) : (
@@ -216,10 +222,15 @@ export const CustomerSelector = ({
         </div>
       ) : (
         /* Customer Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          role="grid"
+          aria-label="Customer selection grid"
+        >
           {filteredCustomers.map((customer) => (
             <div
               key={customer.id}
+              role="gridcell"
               className={`
                 transition-all duration-200
                 ${selectedCustomerId === customer.id ? 'ring-2 ring-blue-500 ring-offset-2' : ''}

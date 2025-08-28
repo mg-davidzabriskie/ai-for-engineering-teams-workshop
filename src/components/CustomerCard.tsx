@@ -94,7 +94,7 @@ export const CustomerCard = ({
         bg-white border border-gray-200 border-l-4 rounded-lg shadow-sm
         hover:shadow-md transition-shadow duration-200
         p-4 w-full
-        ${hasBadData ? 'border-orange-500 shadow-lg shadow-orange-500/50 animate-pulse' : getHealthScoreBorderColor(sanitizedHealthScore)}
+        ${hasBadData ? 'border-orange-500 shadow-lg shadow-orange-500/50 motion-safe:animate-pulse' : getHealthScoreBorderColor(sanitizedHealthScore)}
         ${isClickable ? 'cursor-pointer hover:bg-gray-50' : ''}
         ${className}
       `.trim()}
@@ -112,9 +112,9 @@ export const CustomerCard = ({
       {/* Header with customer name and health score */}
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 truncate">
+          <div className="text-lg font-semibold text-gray-900 truncate" role="heading" aria-level="3">
             {name}
-          </h3>
+          </div>
           <p className="text-sm font-medium text-gray-600 truncate">
             {company}
           </p>
@@ -127,7 +127,11 @@ export const CustomerCard = ({
               min-w-[3rem]
               ${getHealthScoreColor(sanitizedHealthScore)}
             `.trim()}
-            aria-label={`Health score: ${sanitizedHealthScore} out of 100`}
+            aria-label={`Health score: ${sanitizedHealthScore} out of 100. ${
+              sanitizedHealthScore >= 71 ? 'Good health' : 
+              sanitizedHealthScore >= 31 ? 'Moderate health - monitoring needed' : 
+              'Poor health - requires immediate attention'
+            }`}
           >
             {sanitizedHealthScore}
           </span>
@@ -141,6 +145,12 @@ export const CustomerCard = ({
             className="relative inline-block"
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
+            onFocus={() => setShowTooltip(true)}
+            onBlur={() => setShowTooltip(false)}
+            tabIndex={0}
+            role="button"
+            aria-expanded={showTooltip}
+            aria-describedby="domain-tooltip"
           >
             <p className="text-sm text-gray-500 cursor-help">
               <span className="font-medium">Domains:</span>{' '}
@@ -151,13 +161,17 @@ export const CustomerCard = ({
             
             {/* Tooltip */}
             {showTooltip && (
-              <div className="
-                absolute bottom-full left-0 mb-2 z-10
-                bg-gray-900 text-white text-xs rounded-lg py-2 px-3
-                whitespace-nowrap shadow-lg
-                before:content-[''] before:absolute before:top-full before:left-4
-                before:border-4 before:border-transparent before:border-t-gray-900
-              ">
+              <div 
+                id="domain-tooltip"
+                role="tooltip"
+                className="
+                  absolute bottom-full left-0 mb-2 z-10
+                  bg-gray-900 text-white text-xs rounded-lg py-2 px-3
+                  whitespace-nowrap shadow-lg
+                  before:content-[''] before:absolute before:top-full before:left-4
+                  before:border-4 before:border-transparent before:border-t-gray-900
+                "
+              >
                 <div className="space-y-1">
                   {domains.map((domain, index) => (
                     <div key={index}>• {domain}</div>
