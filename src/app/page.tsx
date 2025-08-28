@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import { CustomerCard } from '@/components/CustomerCard';
+import { CustomerHealthDisplay } from '@/components/CustomerHealthDisplay'
 import { CustomerSelector } from '@/components/CustomerSelector';
 import { CustomerManagement } from '@/components/CustomerManagement';
 import { mockCustomers, Customer } from '@/data/mock-customers';
@@ -148,7 +149,9 @@ export default function Home() {
           <p className="text-green-600">✅ Exercise 4: CustomerSelector with multi-select completed</p>
           <p className="text-green-600">✅ Customer Management: CRUD operations with secure API</p>
           <p className="text-green-600">✅ Exercise 6: Market Intelligence Widget integrated</p>
-          <p className="text-gray-400">⏳ Exercise 5: Domain Health widget</p>
+          <p className={CustomerHealthDisplay ? "text-green-600" : "text-gray-400"}>
+            {CustomerHealthDisplay ? "✅" : "⏳"} Exercise 5: Customer Health Score widget
+          </p>
           <p className="text-gray-400">⏳ Exercise 9: Production-ready features</p>
         </div>
       </div>
@@ -198,7 +201,32 @@ export default function Home() {
         <section className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Dashboard Widgets</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <DashboardWidgetDemo widgetName="Domain Health Widget" exerciseNumber={5} />
+            {/* Customer Health Display Widget - Show implemented version if available */}
+            {CustomerHealthDisplay ? (
+              <div className="space-y-2">
+                <p className="text-green-600 text-sm font-medium">✅ Customer Health Display implemented!</p>
+                {selectedCustomer && (
+                  <p className="text-blue-600 text-xs">
+                    Health score for: {selectedCustomer.name} ({selectedCustomer.company})
+                  </p>
+                )}
+                <Suspense fallback={
+                  <div className="border border-gray-200 rounded-lg p-4 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-16 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded"></div>
+                  </div>
+                }>
+                  <CustomerHealthDisplay 
+                    customer={selectedCustomer || mockCustomers[0]}
+                    className="border border-gray-200 rounded-lg"
+                    showBreakdown={true}
+                  />
+                </Suspense>
+              </div>
+            ) : (
+              <DashboardWidgetDemo widgetName="Customer Health Score" exerciseNumber={5} />
+            )}
             {/* Market Intelligence Widget - Show implemented version if available */}
             {MarketIntelligenceWidget ? (
               <div className="space-y-2">
