@@ -1,32 +1,51 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
+import { CustomerCard } from '@/components/CustomerCard';
+import { CustomerSelector } from '@/components/CustomerSelector';
+import { mockCustomers, Customer } from '@/data/mock-customers';
 
-// Dynamic component imports with error boundaries
-const CustomerCardDemo = () => {
-  try {
-    // Try to import CustomerCard - this will work after Exercise 3
-    const CustomerCard = require('../components/CustomerCard')?.default;
-    const mockCustomers = require('../data/mock-customers')?.mockCustomers;
-    
-    if (CustomerCard && mockCustomers?.[0]) {
-      return (
-        <div className="space-y-4">
-          <p className="text-green-600 text-sm font-medium">✅ CustomerCard implemented!</p>
-          <div className="flex flex-wrap gap-4">
-            <CustomerCard customer={mockCustomers[0]} />
-            <CustomerCard customer={mockCustomers[1]} />
-          </div>
-        </div>
-      );
-    }
-  } catch (error) {
-    // Component doesn't exist yet
-  }
-  
+// const CustomerCardDemo = () => {
+//   return (
+//     <div className="space-y-4">
+//       <p className="text-green-600 text-sm font-medium">✅ CustomerCard implemented!</p>
+//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+//         {mockCustomers.slice(0, 6).map((customer) => (
+//           <CustomerCard 
+//             key={customer.id} 
+//             customer={customer}
+//             onClick={(customer) => console.log('Selected:', customer.name)}
+//           />
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
+
+const CustomerSelectorDemo = () => {
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  const handleCustomerSelect = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    console.log('Selected customer:', customer.name, 'from', customer.company);
+  };
+
   return (
-    <div className="text-gray-500 text-sm">
-      After Exercise 3, your CustomerCard components will appear here showing customer information with health scores.
+    <div className="space-y-4">
+      <p className="text-green-600 text-sm font-medium">✅ CustomerSelector implemented!</p>
+      {selectedCustomer && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Selected:</strong> {selectedCustomer.name} from {selectedCustomer.company} 
+            (Health Score: {selectedCustomer.healthScore})
+          </p>
+        </div>
+      )}
+      <CustomerSelector
+        customers={mockCustomers}
+        selectedCustomerId={selectedCustomer?.id}
+        onCustomerSelect={handleCustomerSelect}
+      />
     </div>
   );
 };
@@ -59,8 +78,8 @@ export default function Home() {
         <h2 className="text-xl font-semibold mb-4">Workshop Progress</h2>
         <div className="space-y-2 text-sm text-gray-600">
           <p>✅ Setup Complete - Next.js app is running</p>
-          <p className="text-gray-400">⏳ Exercise 3: CustomerCard component (implement to see here)</p>
-          <p className="text-gray-400">⏳ Exercise 4: CustomerSelector integration</p>
+          <p className="text-green-600">✅ Exercise 3: CustomerCard component implemented</p>
+          <p className="text-green-600">✅ Exercise 4: CustomerSelector integration completed</p>
           <p className="text-gray-400">⏳ Exercise 5: Domain Health widget</p>
           <p className="text-gray-400">⏳ Exercise 9: Production-ready features</p>
         </div>
@@ -69,10 +88,18 @@ export default function Home() {
       {/* Component Showcase Area */}
       <div className="space-y-8">
         {/* CustomerCard Section */}
-        <section className="bg-white rounded-lg shadow p-6">
+        {/* <section className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">CustomerCard Component</h3>
           <Suspense fallback={<div className="text-gray-500">Loading...</div>}>
             <CustomerCardDemo />
+          </Suspense>
+        </section> */}
+
+        {/* CustomerSelector Section */}
+        <section className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">CustomerSelector Component</h3>
+          <Suspense fallback={<div className="text-gray-500">Loading...</div>}>
+            <CustomerSelectorDemo />
           </Suspense>
         </section>
 

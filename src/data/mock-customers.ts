@@ -72,6 +72,17 @@ export const mockCustomers: Customer[] = [
     updatedAt: '2024-01-30T11:05:00Z'
   },
   {
+    id: '5a',
+    name: 'Alex Martinez',
+    company: 'DataSync Pro',
+    healthScore: null as any,
+    email: 'alex@datasync.pro',
+    subscriptionTier: 'basic',
+    domains: undefined,
+    createdAt: '2024-01-28T12:30:00Z',
+    updatedAt: '2024-01-28T12:30:00Z'
+  },
+  {
     id: '6',
     name: 'Lisa Anderson',
     company: 'Smart Ventures',
