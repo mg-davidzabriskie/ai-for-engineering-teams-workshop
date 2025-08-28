@@ -60,6 +60,7 @@ interface Customer {
 
 ### Important Reminders
 - Using @templates/spec-template.md stores generated specs in @specs/
+- Under no circumstances perform a deletion of files or directories without user approval
 
 ### Workshop Exercise Integration
 - Exercises are numbered 01-10 and build incrementally
@@ -68,7 +69,10 @@ interface Customer {
 - Follow exercise requirements in `requirements/` directory for specifications
 
 ### Accessibility Standards
-All components must follow the accessibility requirements defined in `requirements/accessibility-standards.md` (WCAG 2.1 AA compliance).
+All components must follow the accessibility requirements defined in `requirements/claude-standards/accessibility-standards.md` (WCAG 2.1 AA compliance).
+
+### Code Quality Standards
+All code must follow the quality requirements defined in `requirements/claude-standards/code-quality-standards.md`.
 
 ### Configuration Notes
 - ESLint uses Next.js recommended config with TypeScript support
