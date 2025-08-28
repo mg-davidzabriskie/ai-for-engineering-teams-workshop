@@ -1,13 +1,25 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, Suspense } from 'react'
 import { Customer } from '@/data/mock-customers'
 import { AddCustomerForm } from './AddCustomerForm'
 import { CustomerList } from './CustomerList'
 import { useCustomers } from '@/hooks/useCustomers'
 
+// Market Intelligence Widget - Dynamic import with error boundary
+const MarketIntelligenceWidget = (() => {
+  try {
+    const module = require('./MarketIntelligenceWidget');
+    return module.MarketIntelligenceWidget;
+  } catch {
+    return null;
+  }
+})();
+
 interface CustomerManagementProps {
   className?: string
+  onSelectedCustomerChange?: (customer: Customer | null) => void
+  selectedCustomer?: Customer | null
 }
 
 /**
@@ -23,9 +35,17 @@ interface CustomerManagementProps {
  * - Error handling and loading states
  * - Responsive design
  */
-export const CustomerManagement = ({ className = '' }: CustomerManagementProps) => {
+export const CustomerManagement = ({ 
+  className = '',
+  onSelectedCustomerChange,
+  selectedCustomer: externalSelectedCustomer
+}: CustomerManagementProps) => {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
+  const [internalSelectedCustomer, setInternalSelectedCustomer] = useState<Customer | null>(null)
+  
+  // Use external selected customer if provided, otherwise use internal state
+  const selectedCustomer = externalSelectedCustomer ?? internalSelectedCustomer
   
   const {
     customers,
@@ -59,8 +79,13 @@ export const CustomerManagement = ({ className = '' }: CustomerManagementProps) 
   // Handle customer selection
   const handleCustomerSelect = useCallback((customer: Customer) => {
     console.log('Customer selected:', customer)
-    // Could navigate to detail view, etc.
-  }, [])
+    
+    // Update internal state
+    setInternalSelectedCustomer(customer)
+    
+    // Notify parent component if callback provided
+    onSelectedCustomerChange?.(customer)
+  }, [onSelectedCustomerChange])
 
   // Handle customer editing
   const handleCustomerEdit = useCallback((customer: Customer) => {
@@ -175,19 +200,57 @@ export const CustomerManagement = ({ className = '' }: CustomerManagementProps) 
         </div>
       )}
 
-      {/* Customer List */}
-      <CustomerList
-        customers={customers}
-        onCustomerSelect={handleCustomerSelect}
-        onCustomerEdit={handleCustomerEdit}
-        onCustomerDelete={handleCustomerDelete}
-        selectionMode="single"
-        isLoading={isLoading}
-        error={error}
-        showSearch={true}
-        showFilters={true}
-        emptyMessage="No customers found. Add your first customer to get started."
-      />
+      {/* Layout: Customer List and Market Intelligence */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Customer List - Takes up 2/3 of the space on large screens */}
+        <div className="lg:col-span-3">
+          <CustomerList
+            customers={customers}
+            onCustomerSelect={handleCustomerSelect}
+            onCustomerEdit={handleCustomerEdit}
+            onCustomerDelete={handleCustomerDelete}
+            selectionMode="single"
+            isLoading={isLoading}
+            error={error}
+            showSearch={true}
+            showFilters={true}
+            emptyMessage="No customers found. Add your first customer to get started."
+          />
+        </div>
+        
+        {/* Market Intelligence Widget - Takes up 1/3 of the space */}
+        {/* <div className="lg:col-span-1">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Market Intelligence</h3>
+            {selectedCustomer ? (
+              MarketIntelligenceWidget ? (
+                <Suspense fallback={
+                  <div className="border border-gray-200 rounded-lg p-4 animate-pulse bg-white">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-20 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </div>
+                }>
+                  <MarketIntelligenceWidget 
+                    company={selectedCustomer.company}
+                    className="bg-white"
+                  />
+                </Suspense>
+              ) : (
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-500 text-sm bg-white">
+                  <p>Market Intelligence Widget</p>
+                  <p className="text-xs mt-1">Component not yet implemented</p>
+                </div>
+              )
+            ) : (
+              <div className="border border-gray-200 rounded-lg p-4 text-center text-gray-500 text-sm bg-white">
+                <p>Select a customer to view</p>
+                <p>market intelligence data</p>
+              </div>
+            )}
+          </div>
+        </div> */}
+      </div>
 
       {/* Add Customer Modal */}
       {showAddForm && (

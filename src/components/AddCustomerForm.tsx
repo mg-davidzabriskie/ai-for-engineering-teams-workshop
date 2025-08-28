@@ -417,7 +417,7 @@ export const AddCustomerForm = ({
               </p>
             ) : (
               <p className="mt-1 text-sm text-gray-500" id="email-help">
-                Optional - Customer's primary email address
+                Optional - Customer&apos;s primary email address
               </p>
             )}
           </div>
@@ -452,7 +452,7 @@ export const AddCustomerForm = ({
               <option value="enterprise">Enterprise</option>
             </select>
             <p className="mt-1 text-sm text-gray-500" id="subscriptionTier-help">
-              Optional - Customer's subscription level
+              Optional - Customer&apos;s subscription level
             </p>
           </div>
 

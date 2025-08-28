@@ -6,6 +6,16 @@ import { CustomerSelector } from '@/components/CustomerSelector';
 import { CustomerManagement } from '@/components/CustomerManagement';
 import { mockCustomers, Customer } from '@/data/mock-customers';
 
+// Market Intelligence Widget - Dynamic import with error boundary
+const MarketIntelligenceWidget = (() => {
+  try {
+    const module = require('@/components/MarketIntelligenceWidget');
+    return module.MarketIntelligenceWidget;
+  } catch {
+    return null;
+  }
+})();
+
 // const CustomerCardDemo = () => {
 //   return (
 //     <div className="space-y-4">
@@ -110,6 +120,13 @@ const DashboardWidgetDemo = ({ widgetName, exerciseNumber }: { widgetName: strin
 };
 
 export default function Home() {
+  // State for tracking selected customer across components
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  
+  const handleSelectedCustomerChange = (customer: Customer | null) => {
+    setSelectedCustomer(customer);
+  };
+  
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       {/* Header */}
@@ -130,6 +147,7 @@ export default function Home() {
           <p className="text-green-600">✅ Exercise 3: CustomerCard component implemented</p>
           <p className="text-green-600">✅ Exercise 4: CustomerSelector with multi-select completed</p>
           <p className="text-green-600">✅ Customer Management: CRUD operations with secure API</p>
+          <p className="text-green-600">✅ Exercise 6: Market Intelligence Widget integrated</p>
           <p className="text-gray-400">⏳ Exercise 5: Domain Health widget</p>
           <p className="text-gray-400">⏳ Exercise 9: Production-ready features</p>
         </div>
@@ -142,6 +160,11 @@ export default function Home() {
           <h3 className="text-lg font-semibold mb-4">Customer Management System</h3>
           <p className="text-sm text-gray-600 mb-4">
             Complete customer CRUD operations with secure API integration, authentication, and validation.
+            {selectedCustomer && (
+              <span className="block mt-2 text-blue-600 font-medium">
+                Currently selected: {selectedCustomer.name} from {selectedCustomer.company}
+              </span>
+            )}
           </p>
           <Suspense fallback={
             <div className="flex items-center justify-center p-8">
@@ -149,7 +172,10 @@ export default function Home() {
               <span className="ml-2 text-gray-600">Loading customer management...</span>
             </div>
           }>
-            <CustomerManagement />
+            <CustomerManagement 
+              selectedCustomer={selectedCustomer}
+              onSelectedCustomerChange={handleSelectedCustomerChange}
+            />
           </Suspense>
         </section>
         {/* CustomerCard Section */}
@@ -161,19 +187,42 @@ export default function Home() {
         </section> */}
 
         {/* CustomerSelector Section */}
-        <section className="bg-white rounded-lg shadow p-6">
+        {/* <section className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">CustomerSelector Component</h3>
           <Suspense fallback={<div className="text-gray-500">Loading...</div>}>
             <CustomerSelectorDemo />
           </Suspense>
-        </section>
+        </section> */}
 
         {/* Dashboard Widgets Section */}
         <section className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Dashboard Widgets</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <DashboardWidgetDemo widgetName="Domain Health Widget" exerciseNumber={5} />
-            <DashboardWidgetDemo widgetName="Market Intelligence" exerciseNumber={6} />
+            {/* Market Intelligence Widget - Show implemented version if available */}
+            {MarketIntelligenceWidget ? (
+              <div className="space-y-2">
+                <p className="text-green-600 text-sm font-medium">✅ Market Intelligence Widget implemented!</p>
+                {selectedCustomer && (
+                  <p className="text-blue-600 text-xs">
+                    Showing data for: {selectedCustomer.company}
+                  </p>
+                )}
+                <Suspense fallback={
+                  <div className="border border-gray-200 rounded-lg p-4 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-20 bg-gray-200 rounded"></div>
+                  </div>
+                }>
+                  <MarketIntelligenceWidget 
+                    className="border border-gray-200 rounded-lg"
+                    company={selectedCustomer?.company || "Acme Corp"}
+                  />
+                </Suspense>
+              </div>
+            ) : (
+              <DashboardWidgetDemo widgetName="Market Intelligence" exerciseNumber={6} />
+            )}
             <DashboardWidgetDemo widgetName="Predictive Alerts" exerciseNumber={8} />
           </div>
         </section>

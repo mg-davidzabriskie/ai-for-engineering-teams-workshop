@@ -197,7 +197,7 @@ export const CustomerList = ({
 
   // Get unique subscription tiers for filter dropdown
   const availableSubscriptionTiers = useMemo(() => {
-    const tiers = new Set(customers.map(c => c.subscriptionTier).filter(Boolean))
+    const tiers = new Set(customers.map(c => c.subscriptionTier).filter((tier): tier is string => Boolean(tier)))
     return Array.from(tiers).sort()
   }, [customers])
 
