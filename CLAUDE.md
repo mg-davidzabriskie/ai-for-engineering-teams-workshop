@@ -64,6 +64,9 @@ interface Customer {
 - Components auto-discover when implemented (no manual registration needed)
 - Follow exercise requirements in `requirements/` directory for specifications
 
+### Accessibility Standards
+All components must follow the accessibility requirements defined in `requirements/accessibility-standards.md` (WCAG 2.1 AA compliance).
+
 ### Configuration Notes
 - ESLint uses Next.js recommended config with TypeScript support
 - TypeScript configured with strict mode and Next.js plugin
