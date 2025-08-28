@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Customer } from '@/data/mock-customers'
 
 interface CustomerCardProps {
@@ -17,6 +18,8 @@ export const CustomerCard = ({
   onClick,
   className = ''
 }: CustomerCardProps) => {
+  const [showTooltip, setShowTooltip] = useState(false)
+
   if (!customer) {
     return null
   }
@@ -132,11 +135,43 @@ export const CustomerCard = ({
       </div>
 
       {/* Domain information */}
-      <div className="mt-3">
-        <p className="text-sm text-gray-500">
-          <span className="font-medium">Domains:</span>{' '}
-          <span className="text-gray-700">{formatDomains(domains)}</span>
-        </p>
+      <div className="mt-3 relative">
+        {domains && domains.length > 1 ? (
+          <div
+            className="relative inline-block"
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            <p className="text-sm text-gray-500 cursor-help">
+              <span className="font-medium">Domains:</span>{' '}
+              <span className="text-gray-700 underline decoration-dotted">
+                {formatDomains(domains)}
+              </span>
+            </p>
+            
+            {/* Tooltip */}
+            {showTooltip && (
+              <div className="
+                absolute bottom-full left-0 mb-2 z-10
+                bg-gray-900 text-white text-xs rounded-lg py-2 px-3
+                whitespace-nowrap shadow-lg
+                before:content-[''] before:absolute before:top-full before:left-4
+                before:border-4 before:border-transparent before:border-t-gray-900
+              ">
+                <div className="space-y-1">
+                  {domains.map((domain, index) => (
+                    <div key={index}>• {domain}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">
+            <span className="font-medium">Domains:</span>{' '}
+            <span className="text-gray-700">{formatDomains(domains)}</span>
+          </p>
+        )}
       </div>
     </div>
   )

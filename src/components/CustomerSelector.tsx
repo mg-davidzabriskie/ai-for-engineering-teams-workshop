@@ -38,19 +38,23 @@ export const CustomerSelector = ({
   }, [searchQuery])
 
   /**
-   * Filter customers based on search query
+   * Filter and sort customers based on search query
    * Searches both name and company fields case-insensitively
+   * Sorts results alphabetically by company name
    */
   const filteredCustomers = useMemo(() => {
-    if (!debouncedQuery.trim()) {
-      return customers
+    let result = customers
+    
+    if (debouncedQuery.trim()) {
+      const query = debouncedQuery.toLowerCase().trim()
+      result = customers.filter(customer => 
+        customer.name.toLowerCase().includes(query) ||
+        customer.company.toLowerCase().includes(query)
+      )
     }
 
-    const query = debouncedQuery.toLowerCase().trim()
-    return customers.filter(customer => 
-      customer.name.toLowerCase().includes(query) ||
-      customer.company.toLowerCase().includes(query)
-    )
+    // Sort alphabetically by company name
+    return result.sort((a, b) => a.company.localeCompare(b.company))
   }, [customers, debouncedQuery])
 
   /**
