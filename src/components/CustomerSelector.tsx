@@ -1,25 +1,38 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Customer } from '@/data/mock-customers'
 import { CustomerCard } from '@/components/CustomerCard'
 
+type SelectionMode = 'single' | 'multi'
+
 interface CustomerSelectorProps {
   customers: Customer[]
+  // Single select props (backward compatibility)
   selectedCustomerId?: string
   onCustomerSelect?: (customer: Customer) => void
+  // Multi select props
+  selectionMode?: SelectionMode
+  selectedCustomerIds?: string[]
+  onCustomerSelectionChange?: (customers: Customer[]) => void
   className?: string
 }
 
 /**
  * CustomerSelector component provides customer browsing, searching, and selection functionality
  * @param customers - Array of customer data to display
- * @param selectedCustomerId - ID of currently selected customer
- * @param onCustomerSelect - Callback when a customer is selected
+ * @param selectedCustomerId - ID of currently selected customer (single mode)
+ * @param onCustomerSelect - Callback when a customer is selected (single mode)
+ * @param selectionMode - Selection mode: 'single' or 'multi'
+ * @param selectedCustomerIds - Array of selected customer IDs (multi mode)
+ * @param onCustomerSelectionChange - Callback when selection changes (multi mode)
  * @param className - Additional CSS classes
  */
 export const CustomerSelector = ({
   customers,
   selectedCustomerId,
   onCustomerSelect,
+  selectionMode = 'single',
+  selectedCustomerIds = [],
+  onCustomerSelectionChange,
   className = ''
 }: CustomerSelectorProps) => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -58,13 +71,61 @@ export const CustomerSelector = ({
   }, [customers, debouncedQuery])
 
   /**
-   * Handle customer selection
+   * Handle customer selection for single mode
    */
-  const handleCustomerSelect = (customer: Customer) => {
+  const handleSingleSelect = useCallback((customer: Customer) => {
     if (onCustomerSelect) {
       onCustomerSelect(customer)
     }
-  }
+  }, [onCustomerSelect])
+
+  /**
+   * Handle customer selection for multi mode
+   */
+  const handleMultiSelect = useCallback((customer: Customer) => {
+    if (!onCustomerSelectionChange) return
+
+    const isSelected = selectedCustomerIds.includes(customer.id)
+    let newSelectedIds: string[]
+
+    if (isSelected) {
+      // Remove from selection
+      newSelectedIds = selectedCustomerIds.filter(id => id !== customer.id)
+    } else {
+      // Add to selection
+      newSelectedIds = [...selectedCustomerIds, customer.id]
+    }
+
+    const selectedCustomers = customers.filter(c => newSelectedIds.includes(c.id))
+    onCustomerSelectionChange(selectedCustomers)
+  }, [customers, selectedCustomerIds, onCustomerSelectionChange])
+
+  /**
+   * Handle customer selection based on mode
+   */
+  const handleCustomerSelect = selectionMode === 'single' ? handleSingleSelect : handleMultiSelect
+
+  /**
+   * Select all customers
+   */
+  const handleSelectAll = useCallback(() => {
+    if (selectionMode === 'multi' && onCustomerSelectionChange) {
+      onCustomerSelectionChange(filteredCustomers)
+    }
+  }, [selectionMode, onCustomerSelectionChange, filteredCustomers])
+
+  /**
+   * Clear all selections
+   */
+  const handleClearAll = useCallback(() => {
+    if (selectionMode === 'multi' && onCustomerSelectionChange) {
+      onCustomerSelectionChange([])
+    }
+  }, [selectionMode, onCustomerSelectionChange])
+
+  // Current selection state
+  const selectedCount = selectionMode === 'multi' ? selectedCustomerIds.length : (selectedCustomerId ? 1 : 0)
+  const isAllSelected = selectionMode === 'multi' && selectedCustomerIds.length === filteredCustomers.length && filteredCustomers.length > 0
 
   /**
    * Clear search query and reset to show all customers
@@ -167,23 +228,43 @@ export const CustomerSelector = ({
           </div>
         </div>
 
-        {/* Search Status */}
+        {/* Search Status and Selection Controls */}
         <div className="flex items-center justify-between text-sm text-gray-600">
           <span id="search-status" aria-live="polite" aria-atomic="true">
             {isSearching ? (
               'Searching...'
+            ) : selectionMode === 'multi' ? (
+              `${filteredCustomers.length} customer${filteredCustomers.length !== 1 ? 's' : ''} found • ${selectedCount} selected`
             ) : (
               `${filteredCustomers.length} customer${filteredCustomers.length !== 1 ? 's' : ''} found`
             )}
           </span>
-          {searchQuery && (
-            <button
-              onClick={clearSearch}
-              className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
-            >
-              Show all customers
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {selectionMode === 'multi' && filteredCustomers.length > 0 && (
+              <>
+                <button
+                  onClick={isAllSelected ? handleClearAll : handleSelectAll}
+                  className="text-blue-600 hover:text-blue-700 transition-colors duration-200 font-medium"
+                  aria-label={isAllSelected ? 'Deselect all customers' : 'Select all customers'}
+                >
+                  {isAllSelected ? 'Deselect All' : 'Select All'}
+                </button>
+                {selectedCount > 0 && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {selectedCount} selected
+                  </span>
+                )}
+              </>
+            )}
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+              >
+                Show all customers
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -225,28 +306,31 @@ export const CustomerSelector = ({
         <div 
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           role="grid"
-          aria-label="Customer selection grid"
+          aria-label={`Customer ${selectionMode} selection grid`}
         >
-          {filteredCustomers.map((customer) => (
-            <div
-              key={customer.id}
-              role="gridcell"
-              className={`
-                transition-all duration-200
-                ${selectedCustomerId === customer.id ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
-              `.trim()}
-            >
-              <CustomerCard
-                customer={customer}
-                onClick={handleCustomerSelect}
-                className={
-                  selectedCustomerId === customer.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : ''
-                }
-              />
-            </div>
-          ))}
+          {filteredCustomers.map((customer) => {
+            const isSelected = selectionMode === 'single' 
+              ? selectedCustomerId === customer.id
+              : selectedCustomerIds.includes(customer.id)
+            
+            return (
+              <div
+                key={customer.id}
+                role="gridcell"
+                className={`
+                  transition-all duration-200
+                  ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
+                `.trim()}
+              >
+                <CustomerCard
+                  customer={customer}
+                  onClick={handleCustomerSelect}
+                  isSelected={isSelected}
+                  selectedCustomerId={selectionMode === 'single' ? selectedCustomerId : undefined}
+                />
+              </div>
+            )
+          })}
         </div>
       )}
 

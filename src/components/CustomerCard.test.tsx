@@ -243,4 +243,260 @@ describe('CustomerCard', () => {
       expect(card).toHaveClass('border-l-green-500') // Normal health score border
     })
   })
+
+  describe('Selection functionality', () => {
+    it('shows selection state when isSelected is true', () => {
+      render(<CustomerCard customer={mockCustomer} isSelected={true} />)
+      
+      const card = screen.getByText('John Smith').closest('div')
+      expect(card).toHaveClass('bg-blue-50', 'border-blue-500', 'ring-2', 'ring-blue-500')
+    })
+
+    it('shows selection state when selectedCustomerId matches customer id', () => {
+      render(<CustomerCard customer={mockCustomer} selectedCustomerId="1" />)
+      
+      const card = screen.getByText('John Smith').closest('div')
+      expect(card).toHaveClass('bg-blue-50', 'border-blue-500', 'ring-2', 'ring-blue-500')
+    })
+
+    it('does not show selection state when selectedCustomerId does not match', () => {
+      render(<CustomerCard customer={mockCustomer} selectedCustomerId="999" />)
+      
+      const card = screen.getByText('John Smith').closest('div')
+      expect(card).not.toHaveClass('bg-blue-50', 'border-blue-500', 'ring-2', 'ring-blue-500')
+      expect(card).toHaveClass('bg-white', 'border-gray-200')
+    })
+
+    it('has proper ARIA attributes when selected', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          isSelected={true}
+          onClick={mockOnClick} 
+        />
+      )
+      
+      const card = screen.getByRole('button')
+      expect(card).toHaveAttribute('aria-pressed', 'true')
+      expect(card).toHaveAttribute('aria-label', 'Selected customer John Smith from Acme Corp')
+    })
+
+    it('has proper ARIA attributes when not selected', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          isSelected={false}
+          onClick={mockOnClick} 
+        />
+      )
+      
+      const card = screen.getByRole('button')
+      expect(card).toHaveAttribute('aria-pressed', 'false')
+      expect(card).toHaveAttribute('aria-label', 'Select customer John Smith from Acme Corp')
+    })
+
+    it('selection state overrides health score border when selected', () => {
+      render(<CustomerCard customer={mockCustomer} isSelected={true} />)
+      
+      const card = screen.getByText('John Smith').closest('div')
+      expect(card).toHaveClass('border-blue-500')
+      expect(card).not.toHaveClass('border-l-green-500')
+    })
+
+    it('bad data warning is hidden when card is selected', () => {
+      const badDataCustomer = { ...mockCustomer, healthScore: null as any }
+      render(<CustomerCard customer={badDataCustomer} isSelected={true} />)
+      
+      const card = screen.getByText('John Smith').closest('div')
+      expect(card).toHaveClass('border-blue-500')
+      expect(card).not.toHaveClass('border-orange-500', 'animate-pulse')
+    })
+
+    it('shows bad data warning when not selected', () => {
+      const badDataCustomer = { ...mockCustomer, healthScore: null as any }
+      render(<CustomerCard customer={badDataCustomer} isSelected={false} />)
+      
+      const card = screen.getByText('John Smith').closest('div')
+      expect(card).toHaveClass('border-orange-500', 'shadow-lg', 'shadow-orange-500/50', 'motion-safe:animate-pulse')
+    })
+
+    it('maintains backward compatibility when no selection props provided', () => {
+      const mockOnClick = jest.fn()
+      render(<CustomerCard customer={mockCustomer} onClick={mockOnClick} />)
+      
+      const card = screen.getByText('John Smith').closest('div')
+      expect(card).toHaveClass('bg-white', 'border-gray-200')
+      expect(card).not.toHaveClass('bg-blue-50', 'border-blue-500')
+      
+      const button = screen.getByRole('button')
+      expect(button).toHaveAttribute('aria-pressed', 'false')
+    })
+  })
+
+  describe('Multi-select functionality', () => {
+    it('shows checkbox indicator in multi-select mode when clickable', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          selectionMode="multi"
+          onClick={mockOnClick}
+        />
+      )
+      
+      // Should show checkbox indicator in top-left corner
+      const checkbox = screen.getByRole('button').querySelector('div > div')
+      expect(checkbox).toHaveClass('w-5', 'h-5', 'rounded', 'border-2')
+    })
+
+    it('shows selected checkbox in multi-select mode', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          selectionMode="multi"
+          isSelected={true}
+          onClick={mockOnClick}
+        />
+      )
+      
+      // Checkbox should be filled with blue background
+      const checkbox = screen.getByRole('button').querySelector('div > div')
+      expect(checkbox).toHaveClass('bg-blue-500', 'border-blue-500')
+      
+      // Should contain checkmark SVG
+      const checkmark = checkbox?.querySelector('svg')
+      expect(checkmark).toBeInTheDocument()
+      expect(checkmark).toHaveClass('text-white')
+    })
+
+    it('shows unselected checkbox in multi-select mode', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          selectionMode="multi"
+          isSelected={false}
+          onClick={mockOnClick}
+        />
+      )
+      
+      // Checkbox should be white with gray border
+      const checkbox = screen.getByRole('button').querySelector('div > div')
+      expect(checkbox).toHaveClass('bg-white', 'border-gray-300')
+      
+      // Should not contain checkmark SVG
+      const checkmark = checkbox?.querySelector('svg')
+      expect(checkmark).not.toBeInTheDocument()
+    })
+
+    it('does not show checkbox in single-select mode', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          selectionMode="single"
+          onClick={mockOnClick}
+        />
+      )
+      
+      // Should not show checkbox indicator
+      const button = screen.getByRole('button')
+      const checkbox = button.querySelector('div.absolute.top-3.left-3')
+      expect(checkbox).not.toBeInTheDocument()
+    })
+
+    it('does not show checkbox when not clickable', () => {
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          selectionMode="multi"
+        />
+      )
+      
+      // Should not show checkbox when no onClick handler
+      const checkbox = screen.getByText('John Smith').closest('div')?.querySelector('div.absolute.top-3.left-3')
+      expect(checkbox).not.toBeInTheDocument()
+    })
+
+    it('adjusts content padding for checkbox in multi-select mode', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          selectionMode="multi"
+          onClick={mockOnClick}
+        />
+      )
+      
+      // Content should have left padding to accommodate checkbox
+      const nameContainer = screen.getByText('John Smith').parentElement
+      expect(nameContainer).toHaveClass('pl-8')
+    })
+
+    it('has different selection styling for multi-select mode', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          selectionMode="multi"
+          isSelected={true}
+          onClick={mockOnClick}
+        />
+      )
+      
+      const card = screen.getByText('John Smith').closest('div')
+      expect(card).toHaveClass('bg-blue-50', 'border-blue-500', 'ring-2', 'ring-blue-400')
+      expect(card).not.toHaveClass('ring-offset-2') // Multi-select uses different ring styling
+    })
+
+    it('has proper ARIA labels for multi-select mode', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          selectionMode="multi"
+          isSelected={false}
+          onClick={mockOnClick}
+        />
+      )
+      
+      const button = screen.getByRole('button')
+      expect(button).toHaveAttribute('aria-label', 'Select customer John Smith from Acme Corp')
+    })
+
+    it('has proper ARIA labels for selected multi-select mode', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          selectionMode="multi"
+          isSelected={true}
+          onClick={mockOnClick}
+        />
+      )
+      
+      const button = screen.getByRole('button')
+      expect(button).toHaveAttribute('aria-label', 'Deselect customer John Smith from Acme Corp')
+    })
+
+    it('maintains single-select behavior by default', () => {
+      const mockOnClick = jest.fn()
+      render(
+        <CustomerCard 
+          customer={mockCustomer} 
+          isSelected={true}
+          onClick={mockOnClick}
+        />
+      )
+      
+      const card = screen.getByText('John Smith').closest('div')
+      expect(card).toHaveClass('ring-offset-2') // Single-select styling
+      
+      const button = screen.getByRole('button')
+      expect(button).toHaveAttribute('aria-label', 'Selected customer John Smith from Acme Corp')
+    })
+  })
 })

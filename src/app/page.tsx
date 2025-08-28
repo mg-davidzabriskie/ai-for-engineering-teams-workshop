@@ -24,16 +24,45 @@ import { mockCustomers, Customer } from '@/data/mock-customers';
 
 const CustomerSelectorDemo = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectionMode, setSelectionMode] = useState<'single' | 'multi'>('single');
+  const [selectedCustomers, setSelectedCustomers] = useState<Customer[]>([]);
 
-  const handleCustomerSelect = (customer: Customer) => {
+  const handleSingleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
     console.log('Selected customer:', customer.name, 'from', customer.company);
   };
 
+  const handleMultiCustomerSelect = (customers: Customer[]) => {
+    setSelectedCustomers(customers);
+    console.log('Selected customers:', customers.map(c => `${c.name} (${c.company})`).join(', '));
+  };
+
+  const toggleMode = () => {
+    const newMode = selectionMode === 'single' ? 'multi' : 'single';
+    setSelectionMode(newMode);
+    // Clear selections when switching modes
+    setSelectedCustomer(null);
+    setSelectedCustomers([]);
+  };
+
   return (
     <div className="space-y-4">
-      <p className="text-green-600 text-sm font-medium">✅ CustomerSelector implemented!</p>
-      {selectedCustomer && (
+      <div className="flex items-center justify-between">
+        <p className="text-green-600 text-sm font-medium">✅ CustomerSelector with multi-select implemented!</p>
+        <button
+          onClick={toggleMode}
+          className="
+            px-3 py-2 text-sm font-medium rounded-lg border
+            transition-colors duration-200
+            bg-white border-gray-300 text-gray-700
+            hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500
+          "
+        >
+          Mode: {selectionMode === 'single' ? 'Single Select' : 'Multi Select'}
+        </button>
+      </div>
+      
+      {selectionMode === 'single' && selectedCustomer && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
             <strong>Selected:</strong> {selectedCustomer.name} from {selectedCustomer.company} 
@@ -41,10 +70,29 @@ const CustomerSelectorDemo = () => {
           </p>
         </div>
       )}
+      
+      {selectionMode === 'multi' && selectedCustomers.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800 mb-2">
+            <strong>Selected {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''}:</strong>
+          </p>
+          <div className="space-y-1">
+            {selectedCustomers.map((customer, index) => (
+              <p key={customer.id} className="text-sm text-blue-700">
+                {index + 1}. {customer.name} from {customer.company} (Health: {customer.healthScore})
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <CustomerSelector
         customers={mockCustomers}
+        selectionMode={selectionMode}
         selectedCustomerId={selectedCustomer?.id}
-        onCustomerSelect={handleCustomerSelect}
+        selectedCustomerIds={selectedCustomers.map(c => c.id)}
+        onCustomerSelect={handleSingleCustomerSelect}
+        onCustomerSelectionChange={handleMultiCustomerSelect}
       />
     </div>
   );
@@ -79,7 +127,7 @@ export default function Home() {
         <div className="space-y-2 text-sm text-gray-600">
           <p>✅ Setup Complete - Next.js app is running</p>
           <p className="text-green-600">✅ Exercise 3: CustomerCard component implemented</p>
-          <p className="text-green-600">✅ Exercise 4: CustomerSelector integration completed</p>
+          <p className="text-green-600">✅ Exercise 4: CustomerSelector with multi-select completed</p>
           <p className="text-gray-400">⏳ Exercise 5: Domain Health widget</p>
           <p className="text-gray-400">⏳ Exercise 9: Production-ready features</p>
         </div>

@@ -220,4 +220,201 @@ describe('CustomerSelector', () => {
       expect(screen.getByText('1 customer found')).toBeInTheDocument()
     })
   })
+
+  describe('Multi-select functionality', () => {
+    it('supports multi-select mode', () => {
+      const mockOnSelectionChange = jest.fn()
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+          onCustomerSelectionChange={mockOnSelectionChange}
+        />
+      )
+      
+      expect(screen.getByText('3 customers found • 0 selected')).toBeInTheDocument()
+      expect(screen.getByText('Select All')).toBeInTheDocument()
+    })
+
+    it('handles multi-select customer selection', () => {
+      const mockOnSelectionChange = jest.fn()
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+          onCustomerSelectionChange={mockOnSelectionChange}
+        />
+      )
+      
+      const johnCard = screen.getByText('John Smith').closest('div')
+      if (johnCard) {
+        fireEvent.click(johnCard)
+        expect(mockOnSelectionChange).toHaveBeenCalledWith([mockCustomers[0]])
+      }
+    })
+
+    it('handles multi-select deselection', () => {
+      const mockOnSelectionChange = jest.fn()
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+          selectedCustomerIds={['1']}
+          onCustomerSelectionChange={mockOnSelectionChange}
+        />
+      )
+      
+      expect(screen.getByText('3 customers found • 1 selected')).toBeInTheDocument()
+      
+      const johnCard = screen.getByText('John Smith').closest('div')
+      if (johnCard) {
+        fireEvent.click(johnCard)
+        expect(mockOnSelectionChange).toHaveBeenCalledWith([])
+      }
+    })
+
+    it('shows selection count badge', () => {
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+          selectedCustomerIds={['1', '2']}
+        />
+      )
+      
+      expect(screen.getByText('2 selected')).toBeInTheDocument()
+      expect(screen.getByText('3 customers found • 2 selected')).toBeInTheDocument()
+    })
+
+    it('handles select all functionality', () => {
+      const mockOnSelectionChange = jest.fn()
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+          onCustomerSelectionChange={mockOnSelectionChange}
+        />
+      )
+      
+      const selectAllButton = screen.getByText('Select All')
+      fireEvent.click(selectAllButton)
+      
+      expect(mockOnSelectionChange).toHaveBeenCalledWith(mockCustomers)
+    })
+
+    it('handles deselect all functionality', () => {
+      const mockOnSelectionChange = jest.fn()
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+          selectedCustomerIds={['1', '2', '3']}
+          onCustomerSelectionChange={mockOnSelectionChange}
+        />
+      )
+      
+      expect(screen.getByText('Deselect All')).toBeInTheDocument()
+      
+      const deselectAllButton = screen.getByText('Deselect All')
+      fireEvent.click(deselectAllButton)
+      
+      expect(mockOnSelectionChange).toHaveBeenCalledWith([])
+    })
+
+    it('maintains selection across search operations', async () => {
+      const mockOnSelectionChange = jest.fn()
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+          selectedCustomerIds={['1', '2']}
+          onCustomerSelectionChange={mockOnSelectionChange}
+        />
+      )
+      
+      expect(screen.getByText('2 selected')).toBeInTheDocument()
+      
+      const searchInput = screen.getByPlaceholderText('Search customers by name or company...')
+      fireEvent.change(searchInput, { target: { value: 'John' } })
+      
+      await waitFor(() => {
+        expect(screen.getByText('1 customer found • 2 selected')).toBeInTheDocument()
+        expect(screen.getByText('2 selected')).toBeInTheDocument()
+      })
+    })
+
+    it('shows multi-select visual indicators on cards', () => {
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+          selectedCustomerIds={['1']}
+        />
+      )
+      
+      const selectedCard = screen.getByText('John Smith').closest('div')
+      expect(selectedCard).toHaveClass('ring-2', 'ring-blue-500')
+    })
+
+    it('maintains backward compatibility in single mode', () => {
+      const mockOnSelect = jest.fn()
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectedCustomerId="1"
+          onCustomerSelect={mockOnSelect}
+        />
+      )
+      
+      expect(screen.getByText('3 customers found')).toBeInTheDocument()
+      expect(screen.queryByText('Select All')).not.toBeInTheDocument()
+      
+      const johnCard = screen.getByText('John Smith').closest('div')
+      if (johnCard) {
+        fireEvent.click(johnCard)
+        expect(mockOnSelect).toHaveBeenCalledWith(mockCustomers[0])
+      }
+    })
+
+    it('does not show selection controls when no selection callback provided', () => {
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+        />
+      )
+      
+      expect(screen.queryByText('Select All')).not.toBeInTheDocument()
+      expect(screen.getByText('3 customers found')).toBeInTheDocument()
+    })
+
+    it('handles empty customer list in multi-select', () => {
+      render(
+        <CustomerSelector 
+          customers={[]} 
+          selectionMode="multi"
+          selectedCustomerIds={[]}
+        />
+      )
+      
+      expect(screen.getByText('0 customers found • 0 selected')).toBeInTheDocument()
+      expect(screen.queryByText('Select All')).not.toBeInTheDocument()
+    })
+
+    it('has proper accessibility attributes for multi-select', () => {
+      render(
+        <CustomerSelector 
+          customers={mockCustomers} 
+          selectionMode="multi"
+          selectedCustomerIds={['1']}
+        />
+      )
+      
+      const grid = screen.getByRole('grid')
+      expect(grid).toHaveAttribute('aria-label', 'Customer multi selection grid')
+      
+      const selectAllButton = screen.getByText('Select All')
+      expect(selectAllButton).toHaveAttribute('aria-label', 'Select all customers')
+    })
+  })
 })

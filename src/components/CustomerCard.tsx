@@ -5,6 +5,9 @@ interface CustomerCardProps {
   customer: Customer
   onClick?: (customer: Customer) => void
   className?: string
+  isSelected?: boolean
+  selectedCustomerId?: string
+  selectionMode?: 'single' | 'multi'
 }
 
 /**
@@ -12,11 +15,17 @@ interface CustomerCardProps {
  * @param customer - Customer data to display
  * @param onClick - Optional click handler for customer selection
  * @param className - Additional CSS classes
+ * @param isSelected - Whether this card is currently selected
+ * @param selectedCustomerId - ID of currently selected customer (alternative to isSelected)
+ * @param selectionMode - Selection mode for visual indicators ('single' | 'multi')
  */
 export const CustomerCard = ({
   customer,
   onClick,
-  className = ''
+  className = '',
+  isSelected = false,
+  selectedCustomerId,
+  selectionMode = 'single'
 }: CustomerCardProps) => {
   const [showTooltip, setShowTooltip] = useState(false)
 
@@ -30,6 +39,9 @@ export const CustomerCard = ({
   if (!name || !company) {
     return null
   }
+
+  // Determine selection state (support both isSelected prop and selectedCustomerId)
+  const isCardSelected = isSelected || selectedCustomerId === customer.id
 
   // Sanitize health score - handle null, undefined, NaN, and out of range values
   const { sanitizedHealthScore, hasBadData } = (() => {
@@ -91,11 +103,18 @@ export const CustomerCard = ({
   return (
     <div
       className={`
-        bg-white border border-gray-200 border-l-4 rounded-lg shadow-sm
-        hover:shadow-md transition-shadow duration-200
+        border border-l-4 rounded-lg shadow-sm relative
+        hover:shadow-md transition-all duration-200
         p-4 w-full
-        ${hasBadData ? 'border-orange-500 shadow-lg shadow-orange-500/50 motion-safe:animate-pulse' : getHealthScoreBorderColor(sanitizedHealthScore)}
+        ${isCardSelected 
+          ? selectionMode === 'multi'
+            ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-400'
+            : 'bg-blue-50 border-blue-500 ring-2 ring-blue-500 ring-offset-2'
+          : 'bg-white border-gray-200'
+        }
+        ${hasBadData && !isCardSelected ? 'border-orange-500 shadow-lg shadow-orange-500/50 motion-safe:animate-pulse' : !isCardSelected ? getHealthScoreBorderColor(sanitizedHealthScore) : ''}
         ${isClickable ? 'cursor-pointer hover:bg-gray-50' : ''}
+        ${isCardSelected && isClickable ? 'hover:bg-blue-100' : ''}
         ${className}
       `.trim()}
       onClick={handleClick}
@@ -107,11 +126,47 @@ export const CustomerCard = ({
           handleClick()
         }
       } : undefined}
-      aria-label={isClickable ? `Select customer ${name} from ${company}` : undefined}
+      aria-label={isClickable ? (
+        selectionMode === 'multi'
+          ? `${isCardSelected ? 'Deselect' : 'Select'} customer ${name} from ${company}`
+          : `${isCardSelected ? 'Selected customer' : 'Select customer'} ${name} from ${company}`
+      ) : undefined}
+      aria-pressed={isClickable ? isCardSelected : undefined}
     >
+      {/* Selection indicator for multi-select mode */}
+      {selectionMode === 'multi' && isClickable && (
+        <div className="absolute top-3 left-3 z-10">
+          <div
+            className={`
+              w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200
+              ${isCardSelected 
+                ? 'bg-blue-500 border-blue-500' 
+                : 'bg-white border-gray-300 hover:border-blue-400'
+              }
+            `.trim()}
+            aria-hidden="true"
+          >
+            {isCardSelected && (
+              <svg
+                className="w-3 h-3 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header with customer name and health score */}
       <div className="flex items-start justify-between mb-2">
-        <div className="flex-1 min-w-0">
+        <div className={`flex-1 min-w-0 ${selectionMode === 'multi' && isClickable ? 'pl-8' : ''}`}>
           <div className="text-lg font-semibold text-gray-900 truncate" role="heading" aria-level="3">
             {name}
           </div>
