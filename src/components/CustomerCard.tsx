@@ -167,7 +167,7 @@ export const CustomerCard = ({
       {/* Header with customer name and health score */}
       <div className="flex items-start justify-between mb-2">
         <div className={`flex-1 min-w-0 ${selectionMode === 'multi' && isClickable ? 'pl-8' : ''}`}>
-          <div className="text-lg font-semibold text-gray-900 truncate" role="heading" aria-level="3">
+          <div className="text-lg font-semibold text-gray-900 truncate" role="heading" aria-level={3}>
             {name}
           </div>
           <p className="text-sm font-medium text-gray-600 truncate">

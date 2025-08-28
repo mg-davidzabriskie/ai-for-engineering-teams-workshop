@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import { CustomerCard } from '@/components/CustomerCard';
 import { CustomerSelector } from '@/components/CustomerSelector';
+import { CustomerManagement } from '@/components/CustomerManagement';
 import { mockCustomers, Customer } from '@/data/mock-customers';
 
 // const CustomerCardDemo = () => {
@@ -128,6 +129,7 @@ export default function Home() {
           <p>✅ Setup Complete - Next.js app is running</p>
           <p className="text-green-600">✅ Exercise 3: CustomerCard component implemented</p>
           <p className="text-green-600">✅ Exercise 4: CustomerSelector with multi-select completed</p>
+          <p className="text-green-600">✅ Customer Management: CRUD operations with secure API</p>
           <p className="text-gray-400">⏳ Exercise 5: Domain Health widget</p>
           <p className="text-gray-400">⏳ Exercise 9: Production-ready features</p>
         </div>
@@ -135,6 +137,21 @@ export default function Home() {
 
       {/* Component Showcase Area */}
       <div className="space-y-8">
+        {/* Customer Management Section */}
+        <section className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">Customer Management System</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Complete customer CRUD operations with secure API integration, authentication, and validation.
+          </p>
+          <Suspense fallback={
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-gray-600">Loading customer management...</span>
+            </div>
+          }>
+            <CustomerManagement />
+          </Suspense>
+        </section>
         {/* CustomerCard Section */}
         {/* <section className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">CustomerCard Component</h3>
@@ -161,16 +178,41 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Security & Features Info */}
+        <section className="bg-green-50 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-green-900 mb-2">🔒 Security Features Implemented</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-green-800">
+            <div>
+              <h4 className="font-medium mb-2">Authentication & Authorization</h4>
+              <ul className="space-y-1 text-green-700">
+                <li>✅ JWT token authentication</li>
+                <li>✅ Role-based permissions</li>
+                <li>✅ Secure API endpoints</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Input Protection</h4>
+              <ul className="space-y-1 text-green-700">
+                <li>✅ XSS prevention</li>
+                <li>✅ SSRF protection</li>
+                <li>✅ Rate limiting</li>
+              </ul>
+            </div>
+          </div>
+          <p className="text-xs text-green-600 mt-4">💡 Run `node demo-auth.js` to generate test tokens</p>
+        </section>
+
         {/* Getting Started */}
         <section className="bg-blue-50 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">Ready to Start Building?</h3>
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">🎉 Customer Management Complete!</h3>
           <p className="text-blue-800 mb-4">
-            Follow along with the workshop exercises to see this dashboard come to life with AI-generated components.
+            Full-featured customer management system with secure CRUD operations, authentication, and modern UI components.
           </p>
           <div className="text-sm text-blue-700">
-            <p className="mb-1"><strong>Next:</strong> Exercise 1 - Create your first specification</p>
-            <p className="mb-1"><strong>Then:</strong> Exercise 3 - Generate your first component</p>
-            <p className="text-xs text-blue-600">💡 Tip: Refresh this page after completing exercises to see your progress!</p>
+            <p className="mb-1"><strong>Components:</strong> AddCustomerForm, CustomerList, CustomerCard integration</p>
+            <p className="mb-1"><strong>Security:</strong> JWT auth, input validation, SSRF protection, rate limiting</p>
+            <p className="mb-1"><strong>Accessibility:</strong> WCAG 2.1 AA compliant with keyboard navigation</p>
+            <p className="text-xs text-blue-600 mt-2">💡 Try creating, editing, and managing customers above!</p>
           </div>
         </section>
       </div>
