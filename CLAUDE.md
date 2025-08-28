@@ -58,6 +58,9 @@ interface Customer {
 3. Components should be created in `src/components/` following existing patterns
 4. Use TypeScript path alias `@/*` for imports from `src/`
 
+### Important Reminders
+- Using @templates/spec-template.md stores generated specs in @specs/
+
 ### Workshop Exercise Integration
 - Exercises are numbered 01-10 and build incrementally
 - Main page shows progress indicators for each completed exercise
@@ -72,3 +75,4 @@ All components must follow the accessibility requirements defined in `requiremen
 - TypeScript configured with strict mode and Next.js plugin
 - Tailwind CSS v4 with PostCSS integration
 - Path mapping: `@/*` maps to `./src/*`
+
